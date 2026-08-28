@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+//generator client {
+//  provider = "prisma-client"
+//  output   = "../generated/prisma"
+//}
+
+//datasource db {
+//  provider = "postgresql"
+//}
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model TouristSpot {
+  id              Int     @id @default(autoincrement())
+  name            String  @unique
+  entranceFee     Float
+  stayMinutes     Int
+  latitude        Float
+  longitude       Float
+  recommendedTime String?
+
+  area String @default("Unknown")
+
+  priorityWeight Int             @default(50)
+  categories     Category[]
+  openingHours   OpeningHour[]
+  savedPlanItems SavedPlanItem[]
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  spots TouristSpot[]
+}
+
+model OpeningHour {
+  id            Int     @id @default(autoincrement())
+  dayOfWeek     Int
+  openTime      String?
+  closeTime     String?
+  closesNextDay Boolean @default(false)
+  isClosed      Boolean @default(false)
+
+  touristSpotId Int
+  touristSpot   TouristSpot @relation(fields: [touristSpotId], references: [id], onDelete: Cascade)
+
+  @@unique([touristSpotId, dayOfWeek])
+}
+
+model SavedPlan {
+  id String @id @default(cuid())
+
+  budget    String
+  interests String
+
+  date      String
+  startTime String
+  endTime   String
+
+  createdAt DateTime @default(now())
+
+  items SavedPlanItem[]
+}
+
+model SavedPlanItem {
+  id Int @id @default(autoincrement())
+
+  order Int
+
+  startTime String
+  endTime   String
+
+  travelMinutes Int?
+  fare          Float?
+  transport     String?
+
+  savedPlanId String
+
+  savedPlan SavedPlan @relation(fields: [savedPlanId], references: [id], onDelete: Cascade)
+
+  touristSpotId Int
+
+  touristSpot TouristSpot @relation(fields: [touristSpotId], references: [id])
+}
